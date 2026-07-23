@@ -12,10 +12,10 @@
 
 ## 2. BIP-39 Clipboard Identifier
 
-- [ ] Embed the BIP-0039 English wordlist from `bip-0039/` .
-- [ ] Implement `generateClipboardId()` returning three random words joined by dashes.
-- [ ] Implement validation/normalization of clipboard ids.
-- [ ] Add collision detection (server rejects duplicate id on creation if directory exists).
+- [x] Embed the BIP-0039 English wordlist from `bip-0039/` .
+- [x] Implement `generateClipboardId()` returning three random words joined by dashes.
+- [x] Implement validation/normalization of clipboard ids.
+- [x] Add collision detection (server rejects duplicate id on creation if directory exists).
 
 ## 3. Client-Side Cryptography
 
