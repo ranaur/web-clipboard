@@ -31,10 +31,10 @@
 
 ## 4. Local Key & Identity Storage
 
-- [ ] Store identity key pair in IndexedDB (use `idb` for a simpler API).
-- [ ] Store machine name and user name locally.
-- [ ] On first load, prompt for machine/user name and optional password.
-- [ ] Load identity on app startup; if a password is set, prompt to unlock the private key.
+- [x] Store identity key pair in IndexedDB (use `idb` for a simpler API).
+- [x] Store machine name and user name locally.
+- [x] On first load, prompt for machine/user name and optional password.
+- [x] Load identity on app startup; if a password is set, prompt to unlock the private key.
 
 ## 5. Server Core
 
