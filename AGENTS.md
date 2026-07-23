@@ -4,22 +4,23 @@
 
 This repository implements a **Distributed Clipboard**: a browser-first, cross-platform application that lets users share text, images and files between devices using a 3-word BIP-39 identifier. The server only relays and stores encrypted data — all cryptography happens in the client.
 
-The full architecture and tech-stack specification is in <ref_file file="C:\Users\Administrator\repos\test-repo\docs\ARCHITECTURE.md" />.
+The full architecture and tech-stack specification is in <ref_file file="ARCHITECTURE.md" />.
 
 ## Tech Stack
 
 - **Client**: TypeScript, vanilla Web APIs, Web Crypto API, IndexedDB, WebSocket, Clipboard API.
 - **Server**: Node.js 20+, Express, `ws` library, flat-file storage.
-- **Build**: esbuild or Vite; npm as package manager.
+- **Build**: Vite for the client, `tsc` for the server.
 - **Tests**: vitest for client, Node Test Runner for server.
 - **Lint/Format**: ESLint + Prettier.
 
 ## Repository Layout
 
 ```
-client/          # browser TypeScript source and HTML entry point
+index.html       # Vite entry point
+client/          # browser TypeScript source
 server/          # Node.js WebSocket relay + HTTP server
-shared/          # shared types and small utilities (if any)
+shared/          # shared TypeScript types
 docs/            # architecture and design documents
 data/            # runtime flat-file storage (gitignored)
 AGENTS.md        # this file
@@ -50,12 +51,16 @@ TODO.md          # implementation task list
 
 ```bash
 npm install
-npm run dev      # start server + hot-reload client
-npm run build    # build production client/server bundles
-npm run lint     # run ESLint and Prettier checks
-npm test         # run all tests
+npm run dev          # start server + Vite dev server
+npm run build        # compile server and bundle client to dist/
+npm start            # run production server from dist/
+npm run typecheck    # TypeScript check
+npm run lint         # ESLint
+npm run format       # Prettier format
+npm run format:check # Prettier check
+npm test             # run all tests
 ```
 
 ## Where to Start
 
-For a concrete implementation plan, see <ref_file file="C:\Users\Administrator\repos\test-repo\TODO.md" />.
+For a concrete implementation plan, see <ref_file file="TODO.md" />.
