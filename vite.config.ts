@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 
+const API_TARGET = 'http://localhost:3000';
+
 export default defineConfig({
   root: '.',
   build: {
@@ -13,6 +15,8 @@ export default defineConfig({
         target: 'ws://localhost:3000',
         ws: true,
       },
+      '/bip-0039': API_TARGET,
+      '/api': API_TARGET,
     },
   },
 });
