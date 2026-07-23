@@ -28,6 +28,12 @@ export interface ClipboardMeta {
   members: Member[];
 }
 
+export interface EncryptedClipboardPayload {
+  iv: string;
+  ciphertext: string;
+  timestamp?: string;
+}
+
 export interface WsMessage<T = unknown> {
   room: string;
   type: string;
