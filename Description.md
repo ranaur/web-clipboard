@@ -6,19 +6,19 @@ The program is a distributed clipboard. You can send text, images and files from
 
 Every clipboard is identified by a random string of three BIP-0039 compatible words (see https://github.com/bitcoin/bips/blob/master/bip-0039/bip-0039-wordlists.md).
 
-When you load the page for the first time, the system will create a private/public key pair to identify the machine. The user can have a password in this key, if the user wants. 
+When you load the page for the first time, the system will create a private/public key pair to identify the machine. The user can have a password in this key, if the user wants.
 
 This pair will be saved in computer cryptographic API if avaliable, or created by javascript and saved in local browser storage. In this case, it must have a password to unlock.
 
 It will try to get the machine's name and user. The user can change the machine's name and his name.
 
-The first page will give two options: create a new clipboard; and connect to an existing clipboard. 
+The first page will give two options: create a new clipboard; and connect to an existing clipboard.
 
 For creating a new clipboard, the system will create the random string to identify the clipboard and connect the client to this newly created clipboard. And connects the user to this clipboard, as owner.
 
 For connecting to a clipboard, the system will check if the public key of the client (making a private/public key challenge) is valid and if this public key is allowed to conenct.
 
-Each clipboard can have three user profiles level: owner, user and blocked. Owner approves or rejects each new user, it can aprove it once, with a date limit or indefinitively. Owners have always indefinife access. 
+Each clipboard can have three user profiles level: owner, user and blocked. Owner approves or rejects each new user, it can aprove it once, with a date limit or indefinitively. Owners have always indefinife access.
 
 Blocked users, of course, can't connect to this clipboard.
 

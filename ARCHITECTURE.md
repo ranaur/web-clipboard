@@ -115,14 +115,14 @@ Encrypted content files use the layout:
 
 ## Cryptography
 
-| Purpose | Mechanism |
-|--------|-----------|
-| Identity key pair | RSA-OAEP 2048 (encryption) + RSASSA-PKCS1-v1_5 2048 (signing) or equivalent ECDSA/ECDH P-256 pair |
-| Signing challenges | RSASSA-PKCS1-v1_5 / ECDSA with SHA-256 |
-| Shared secret | 256-bit random value |
-| Clipboard content encryption | AES-256-GCM |
-| Shared secret distribution | Encrypted with the asker's public key |
-| Optional key password | PBKDF2-HMAC-SHA-256 derived AES-256-GCM wrapping key |
+| Purpose                      | Mechanism                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- |
+| Identity key pair            | RSA-OAEP 2048 (encryption) + RSASSA-PKCS1-v1_5 2048 (signing) or equivalent ECDSA/ECDH P-256 pair |
+| Signing challenges           | RSASSA-PKCS1-v1_5 / ECDSA with SHA-256                                                            |
+| Shared secret                | 256-bit random value                                                                              |
+| Clipboard content encryption | AES-256-GCM                                                                                       |
+| Shared secret distribution   | Encrypted with the asker's public key                                                             |
+| Optional key password        | PBKDF2-HMAC-SHA-256 derived AES-256-GCM wrapping key                                              |
 
 All operations use the Web Crypto API (`crypto.subtle`) in the browser.
 
@@ -153,21 +153,21 @@ The server may also send plain control messages for join requests and approvals,
 
 ## Tech Stack
 
-| Layer | Choice |
-|-------|--------|
-| Language | TypeScript (client and server) |
-| Build/bundle | esbuild or Vite |
-| Server runtime | Node.js 20+ |
-| HTTP server | Express |
-| WebSocket | `ws` |
-| Storage | Filesystem (flat files) |
-| Client storage | IndexedDB (via `idb` wrapper) |
-| Crypto | Web Crypto API in client; Node.js `crypto` on server for non-secret helpers |
-| BIP-39 wordlist | Embedded wordlist or `bip39` / `@scure/bip39` package |
-| System clipboard | Browser Clipboard API first; native wrappers later |
-| Testing | vitest (client), Node Test Runner (server) |
-| Lint/format | ESLint + Prettier |
-| Container | Optional Dockerfile |
+| Layer            | Choice                                                                      |
+| ---------------- | --------------------------------------------------------------------------- |
+| Language         | TypeScript (client and server)                                              |
+| Build/bundle     | esbuild or Vite                                                             |
+| Server runtime   | Node.js 20+                                                                 |
+| HTTP server      | Express                                                                     |
+| WebSocket        | `ws`                                                                        |
+| Storage          | Filesystem (flat files)                                                     |
+| Client storage   | IndexedDB (via `idb` wrapper)                                               |
+| Crypto           | Web Crypto API in client; Node.js `crypto` on server for non-secret helpers |
+| BIP-39 wordlist  | Embedded wordlist or `bip39` / `@scure/bip39` package                       |
+| System clipboard | Browser Clipboard API first; native wrappers later                          |
+| Testing          | vitest (client), Node Test Runner (server)                                  |
+| Lint/format      | ESLint + Prettier                                                           |
+| Container        | Optional Dockerfile                                                         |
 
 ## Deployment Options
 
