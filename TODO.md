@@ -19,15 +19,15 @@
 
 ## 3. Client-Side Cryptography
 
-- [ ] Wrap `crypto.subtle` in a `CryptoClient` module.
-- [ ] Generate RSA-OAEP / RSASSA-PKCS1-v1_5 key pair (or ECDSA/ECDH P-256 pair) for identity.
-- [ ] Export public key to SPKI and import peer public keys.
-- [ ] Sign challenge nonces with the private key.
-- [ ] Verify signatures from peers.
-- [ ] Generate a 256-bit random shared secret.
-- [ ] Encrypt/decrypt the shared secret with a peer's public key and the local private key.
-- [ ] Encrypt/decrypt clipboard content with AES-256-GCM and an exported/imported key.
-- [ ] Optional: password-protect the local private key with PBKDF2 + AES-256-GCM.
+- [x] Wrap `crypto.subtle` in a `CryptoClient` module.
+- [x] Generate RSA-OAEP / RSASSA-PKCS1-v1_5 key pair (or ECDSA/ECDH P-256 pair) for identity.
+- [x] Export public key to SPKI and import peer public keys.
+- [x] Sign challenge nonces with the private key.
+- [x] Verify signatures from peers.
+- [x] Generate a 256-bit random shared secret.
+- [x] Encrypt/decrypt the shared secret with a peer's public key and the local private key.
+- [x] Encrypt/decrypt clipboard content with AES-256-GCM and an exported/imported key.
+- [x] Optional: password-protect the local private key with PBKDF2 + AES-256-GCM.
 
 ## 4. Local Key & Identity Storage
 
