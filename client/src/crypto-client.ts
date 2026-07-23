@@ -60,6 +60,13 @@ export class CryptoClient {
     return client;
   }
 
+  getKeyPairs(): { signKeyPair: CryptoKeyPair; encryptKeyPair: CryptoKeyPair } {
+    return {
+      signKeyPair: this.signKeyPair,
+      encryptKeyPair: this.encryptKeyPair,
+    };
+  }
+
   async getPublicKeys(): Promise<PublicKeyBundle> {
     const [signSpki, encryptSpki] = await Promise.all([
       crypto.subtle.exportKey('spki', this.signKeyPair.publicKey),

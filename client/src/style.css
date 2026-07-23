@@ -14,3 +14,51 @@ body {
 h1 {
   font-size: 1.5rem;
 }
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 24rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.identity-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-width: 30rem;
+}
+
+.hint {
+  color: #666;
+  font-size: 0.875rem;
+}

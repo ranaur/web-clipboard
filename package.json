@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "express": "^4.21.0",
+    "idb": "^8.0.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
