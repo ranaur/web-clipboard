@@ -2,13 +2,13 @@
 
 ## 1. Repository Bootstrap
 
-- [ ] Initialize `package.json` with `"type": "module"` and workspace/project scripts.
-- [ ] Set up TypeScript config (`tsconfig.json`) for client and server.
-- [ ] Configure build tool (Vite or esbuild) and dev server.
-- [ ] Add lint/format tooling: ESLint, Prettier.
-- [ ] Create initial directory structure: `client/`, `server/`, `shared/`, `docs/`, `data/` (gitignored).
-- [ ] Add `.gitignore` entries for `node_modules/`, `dist/`, `data/`, and environment files.
-- [ ] Add basic README with setup and run instructions.
+- [x] Initialize `package.json` with `"type": "module"` and workspace/project scripts.
+- [x] Set up TypeScript config (`tsconfig.json`) for client and server.
+- [x] Configure build tool (Vite or esbuild) and dev server.
+- [x] Add lint/format tooling: ESLint, Prettier.
+- [x] Create initial directory structure: `client/`, `server/`, `shared/`, `docs/`, `data/` (gitignored).
+- [x] Add `.gitignore` entries for `node_modules/`, `dist/`, `data/`, and environment files.
+- [x] Add basic README with setup and run instructions.
 
 ## 2. BIP-39 Clipboard Identifier
 
