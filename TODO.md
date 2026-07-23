@@ -12,7 +12,7 @@
 
 ## 2. BIP-39 Clipboard Identifier
 
-- [ ] Embed or fetch the BIP-0039 English wordlist.
+- [ ] Embed the BIP-0039 English wordlist from `bip-0039/` .
 - [ ] Implement `generateClipboardId()` returning three random words joined by dashes.
 - [ ] Implement validation/normalization of clipboard ids.
 - [ ] Add collision detection (server rejects duplicate id on creation if directory exists).
