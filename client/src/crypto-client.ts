@@ -1,9 +1,5 @@
 import { arrayBufferToBase64, base64ToArrayBuffer, stringToBuffer } from '../../shared/encoding.js';
-
-export interface PublicKeyBundle {
-  signPublicKey: string; // SPKI, base64
-  encryptPublicKey: string; // SPKI, base64
-}
+import type { PublicKeyBundle } from '../../shared/types.js';
 
 export interface WrappedPrivateKeys {
   sign: string; // base64-encoded wrapped JWK
@@ -102,6 +98,11 @@ export class CryptoClient {
   async signChallenge(data: ArrayBuffer | string): Promise<ArrayBuffer> {
     const buffer = typeof data === 'string' ? stringToBuffer(data) : data;
     return crypto.subtle.sign('RSASSA-PKCS1-v1_5', this.signKeyPair.privateKey, buffer);
+  }
+
+  async signChallengeBase64(data: ArrayBuffer | string): Promise<string> {
+    const signature = await this.signChallenge(data);
+    return arrayBufferToBase64(signature);
   }
 
   static async verifyChallenge(

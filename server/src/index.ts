@@ -38,8 +38,12 @@ wss.on('connection', (ws) => {
     try {
       if (message.type === 'join') {
         const { room, payload } = message;
-        const { publicKey, name } = payload as { publicKey: string; name?: string };
-        await roomManager.join(ws, room, publicKey, name ?? '');
+        const { publicKey, encryptPublicKey, name } = payload as {
+          publicKey: string;
+          encryptPublicKey: string;
+          name?: string;
+        };
+        await roomManager.requestJoin(ws, room, publicKey, encryptPublicKey, name ?? '');
       } else if (message.type === 'leave') {
         await roomManager.leave(ws);
       } else {
@@ -96,7 +100,11 @@ app.get('/api/clipboard/:id/exists', async (req, res, next) => {
 app.get('/api/clipboard/:id/members', async (req, res, next) => {
   try {
     const meta = await loadMeta(req.params.id);
-    res.json({ id: req.params.id, members: meta?.members ?? [] });
+    res.json({
+      id: req.params.id,
+      members: meta?.members ?? [],
+      pendingRequests: meta?.pendingRequests ?? [],
+    });
   } catch (err) {
     next(err);
   }

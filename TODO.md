@@ -48,15 +48,15 @@
 
 ## 6. Join & Approval Flow
 
-- [ ] Client sends `join` message with clipboard id and public key.
-- [ ] Server sends `challenge` nonce.
-- [ ] Client responds with `challenge_response` signature.
-- [ ] Server verifies signature and checks member list in `meta.json`.
-- [ ] If public key is unknown, mark as pending and notify owner(s).
-- [ ] Owner UI shows pending requests; owner can approve/reject.
-- [ ] Approval can be `once`, `until <date>`, or `indefinite`.
-- [ ] Blocked public keys are rejected immediately.
-- [ ] Owner can change a member's profile (`user` <-> `owner`), but not their own.
+- [x] Client sends `join` message with clipboard id and public key.
+- [x] Server sends `challenge` nonce.
+- [x] Client responds with `challenge_response` signature.
+- [x] Server verifies signature and checks member list in `meta.json`.
+- [x] If public key is unknown, mark as pending and notify owner(s).
+- [x] Owner UI shows pending requests; owner can approve/reject.
+- [x] Approval can be `once`, `until <date>`, or `indefinite`.
+- [x] Blocked public keys are rejected immediately.
+- [x] Owner can change a member's profile (`user` <-> `owner`), but not their own.
 
 ## 7. Shared Secret Distribution
 

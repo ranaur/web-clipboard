@@ -62,3 +62,37 @@ button {
   color: #666;
   font-size: 0.875rem;
 }
+
+.room-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  max-width: 40rem;
+}
+
+.room-card .success {
+  color: #1a7f37;
+}
+
+.room-card .error {
+  color: #cf222e;
+}
+
+.room-card ul {
+  padding-left: 1.25rem;
+}
+
+.room-card li {
+  margin-bottom: 0.5rem;
+}
+
+.room-card select,
+.room-card input[type='datetime-local'] {
+  margin-right: 0.5rem;
+}
+
+.room-card button {
+  margin-right: 0.5rem;
+}
