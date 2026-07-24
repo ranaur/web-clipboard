@@ -166,7 +166,7 @@ export class Room {
         from: 'server',
         payload: { profile: member.profile },
       });
-      this.send(ws, { room: this.id, type: 'members', from: 'server', payload: meta.members });
+      this.broadcast({ room: this.id, type: 'members', from: 'server', payload: meta.members });
       this.broadcast(
         {
           room: this.id,
@@ -181,6 +181,7 @@ export class Room {
         },
         ws,
       );
+      this.requestShareSecret(info.publicKey, info.encryptPublicKey, ws);
       return;
     }
 
@@ -273,7 +274,6 @@ export class Room {
 
     this.meta = meta;
     await saveMeta(this.id, meta);
-    this.broadcast({ room: this.id, type: 'members', from: 'server', payload: meta.members }, ws);
 
     // If the requester is currently connected, add them to the room now.
     const pendingClient = this.pendingClients.get(publicKey);
@@ -301,12 +301,7 @@ export class Room {
         from: 'server',
         payload: { kind, expiresAt },
       });
-      this.send(pendingClient.ws, {
-        room: this.id,
-        type: 'members',
-        from: 'server',
-        payload: meta.members,
-      });
+      this.broadcast({ room: this.id, type: 'members', from: 'server', payload: meta.members });
       this.broadcast(
         {
           room: this.id,
@@ -321,6 +316,13 @@ export class Room {
         },
         pendingClient.ws,
       );
+      this.requestShareSecret(
+        pendingClient.publicKey,
+        pendingClient.encryptPublicKey,
+        pendingClient.ws,
+      );
+    } else {
+      this.broadcast({ room: this.id, type: 'members', from: 'server', payload: meta.members });
     }
   }
 
@@ -436,6 +438,54 @@ export class Room {
     this.broadcast({ room: this.id, type: 'members', from: 'server', payload: meta.members });
   }
 
+  requestShareSecret(
+    targetPublicKey: string,
+    targetEncryptPublicKey: string,
+    exclude?: WebSocket,
+  ): void {
+    const message: WsMessage = {
+      room: this.id,
+      type: 'request_share_secret',
+      from: 'server',
+      payload: { targetPublicKey, targetEncryptPublicKey },
+    };
+    const text = JSON.stringify(message);
+    for (const [clientWs] of this.clients) {
+      if (clientWs !== exclude && clientWs.readyState === WebSocket.OPEN) {
+        clientWs.send(text);
+      }
+    }
+  }
+
+  private handleShareSecret(ws: WebSocket, payload: unknown): void {
+    const info = this.clients.get(ws);
+    if (!info) return;
+    const { toPublicKey, encryptedSecret } = payload as {
+      toPublicKey: string;
+      encryptedSecret: string;
+    };
+
+    const targetClient = this.findClientByPublicKey(toPublicKey);
+    if (targetClient) {
+      this.send(targetClient, {
+        room: this.id,
+        type: 'share_secret',
+        from: info.thumbprint,
+        payload: { encryptedSecret },
+      });
+    }
+  }
+
+  private findClientByPublicKey(publicKey: string): WebSocket | null {
+    for (const [clientWs, client] of this.clients) {
+      if (client.publicKey === publicKey) return clientWs;
+    }
+    for (const [pendingPublicKey, pending] of this.pendingClients) {
+      if (pendingPublicKey === publicKey) return pending.ws;
+    }
+    return null;
+  }
+
   leave(ws: WebSocket): boolean {
     const challenge = this.challenges.get(ws);
     if (challenge) {
@@ -497,6 +547,11 @@ export class Room {
           profile: 'owner' | 'user';
         };
         await this.changeProfile(ws, publicKey, profile);
+        return;
+      }
+      case 'share_secret': {
+        if (!info) return;
+        this.handleShareSecret(ws, message.payload);
         return;
       }
       case 'content': {
