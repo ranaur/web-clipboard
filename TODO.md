@@ -38,13 +38,13 @@
 
 ## 5. Server Core
 
-- [ ] Create Express app that serves the built client.
-- [ ] Add `ws` WebSocket server at `/ws`.
-- [ ] Implement room management: join, leave, and list members by clipboard id.
-- [ ] Load/create `data/<clipboard-id>/meta.json` on first join.
-- [ ] Forward encrypted payloads to all members of a room.
-- [ ] Track active connections; when the last member leaves, wipe the `content/` directory.
-- [ ] Keep `meta.json` for a configurable TTL before deleting the clipboard directory.
+- [x] Create Express app that serves the built client.
+- [x] Add `ws` WebSocket server at `/ws`.
+- [x] Implement room management: join, leave, and list members by clipboard id.
+- [x] Load/create `data/<clipboard-id>/meta.json` on first join.
+- [x] Forward encrypted payloads to all members of a room.
+- [x] Track active connections; when the last member leaves, wipe the `content/` directory.
+- [x] Keep `meta.json` for a configurable TTL before deleting the clipboard directory.
 
 ## 6. Join & Approval Flow
 
