@@ -50,11 +50,24 @@ export async function loadMeta(id: string): Promise<ClipboardMeta | null> {
   const metaPath = path.join(getClipboardDir(id), 'meta.json');
   try {
     const text = await fs.readFile(metaPath, 'utf-8');
-    return JSON.parse(text) as ClipboardMeta;
+    const meta = JSON.parse(text) as ClipboardMeta;
+    return normalizeMeta(meta);
   } catch (err) {
     if (isNoEntityError(err)) return null;
     throw err;
   }
+}
+
+function normalizeMeta(meta: ClipboardMeta): ClipboardMeta {
+  return {
+    ...meta,
+    pendingRequests: meta.pendingRequests ?? [],
+    ownerEncryptPublicKey: meta.ownerEncryptPublicKey ?? '',
+    members: (meta.members ?? []).map((m) => ({
+      ...m,
+      encryptPublicKey: m.encryptPublicKey ?? '',
+    })),
+  };
 }
 
 export async function saveMeta(id: string, meta: ClipboardMeta): Promise<void> {
@@ -66,6 +79,7 @@ export async function saveMeta(id: string, meta: ClipboardMeta): Promise<void> {
 export async function createClipboard(
   id: string,
   ownerPublicKey: string,
+  ownerEncryptPublicKey: string,
   ownerName = 'Owner',
 ): Promise<ClipboardMeta> {
   const normalized = normalizeClipboardId(id);
@@ -81,14 +95,17 @@ export async function createClipboard(
   const meta: ClipboardMeta = {
     id: normalized,
     ownerPublicKey,
+    ownerEncryptPublicKey,
     members: [
       {
         publicKey: ownerPublicKey,
+        encryptPublicKey: ownerEncryptPublicKey,
         name: ownerName,
         profile: 'owner',
         approval: { kind: 'indefinite', expiresAt: null },
       },
     ],
+    pendingRequests: [],
   };
 
   await saveMeta(normalized, meta);
