@@ -60,10 +60,10 @@
 
 ## 7. Shared Secret Distribution
 
-- [ ] First client in an empty clipboard generates the shared secret.
-- [ ] When a new member is approved, an existing member sends `share_secret` encrypted with the new member's public key.
-- [ ] New member decrypts and stores the shared secret locally for the session.
-- [ ] Implement shared secret rotation: generate new secret, re-encrypt for current members, and use it for subsequent content.
+- [x] First client in an empty clipboard generates the shared secret.
+- [x] When a new member is approved, an existing member sends `share_secret` encrypted with the new member's public key.
+- [x] New member decrypts and stores the shared secret locally for the session.
+- [x] Implement shared secret rotation: generate new secret, re-encrypt for current members, and use it for subsequent content.
 
 ## 8. Clipboard Content Sync
 

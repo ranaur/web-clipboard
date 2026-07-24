@@ -210,7 +210,13 @@ function renderMembers(members: Member[]): void {
   section.innerHTML = `
     <h3>Members</h3>
     <ul>${list}</ul>
+    ${isOwner ? `<button id="rotate-secret">Rotate shared secret</button>` : ''}
+    <p>Shared secret: ${clipboardClient.hasSharedSecret ? 'ready' : 'missing'}</p>
   `;
+
+  document.getElementById('rotate-secret')?.addEventListener('click', () => {
+    clipboardClient?.rotateSecret();
+  });
 
   section.querySelectorAll('.profile-toggle').forEach((btn) => {
     btn.addEventListener('click', (event) => {

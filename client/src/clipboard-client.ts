@@ -1,5 +1,6 @@
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../shared/encoding.js';
 import type { Member, PendingRequest, WsMessage } from '../../shared/types.js';
-import type { CryptoClient } from './crypto-client.js';
+import { CryptoClient } from './crypto-client.js';
 import type { Identity } from './identity-store.js';
 
 export type ClipboardState =
@@ -26,6 +27,8 @@ export class ClipboardClient {
   pendingRequests: PendingRequest[] = [];
   isOwner = false;
   private mySignPublicKey: string | null = null;
+  private sharedSecretRaw: ArrayBuffer | null = null;
+  private sharedSecretKey: CryptoKey | null = null;
 
   constructor(
     roomId: string,
@@ -47,16 +50,55 @@ export class ClipboardClient {
     return this.mySignPublicKey;
   }
 
+  get hasSharedSecret(): boolean {
+    return this.sharedSecretKey !== null;
+  }
+
+  private async ensureSharedSecret(): Promise<void> {
+    if (this.sharedSecretKey) return;
+    const raw = CryptoClient.generateSharedSecret();
+    this.sharedSecretRaw = new Uint8Array(raw).buffer.slice(0, 32);
+    this.sharedSecretKey = await CryptoClient.importContentKey(this.sharedSecretRaw);
+  }
+
+  private async setSharedSecret(raw: ArrayBuffer): Promise<void> {
+    this.sharedSecretRaw = raw;
+    this.sharedSecretKey = await CryptoClient.importContentKey(raw);
+  }
+
+  private async encryptSharedSecretFor(encryptPublicKey: string): Promise<string | null> {
+    if (!this.sharedSecretRaw) return null;
+    const encrypted = await this.cryptoClient.encryptSharedSecret(
+      this.sharedSecretRaw,
+      encryptPublicKey,
+    );
+    return arrayBufferToBase64(encrypted);
+  }
+
+  async encryptContent(plaintext: ArrayBuffer): Promise<{ iv: string; ciphertext: string }> {
+    if (!this.sharedSecretKey) throw new Error('No shared secret');
+    return CryptoClient.encryptContent(plaintext, this.sharedSecretKey);
+  }
+
+  async decryptContent(iv: string, ciphertext: string): Promise<ArrayBuffer> {
+    if (!this.sharedSecretKey) throw new Error('No shared secret');
+    return CryptoClient.decryptContent(iv, ciphertext, this.sharedSecretKey);
+  }
+
   private setState(state: ClipboardState): void {
     this._state = state;
     this.callbacks.onStateChange?.(state);
   }
 
-  connect(): void {
+  connect(serverUrl?: string): void {
     if (this.ws) return;
 
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    this.ws = new WebSocket(`${protocol}//${location.host}/ws`);
+    if (serverUrl) {
+      this.ws = new WebSocket(serverUrl);
+    } else {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      this.ws = new WebSocket(`${protocol}//${location.host}/ws`);
+    }
 
     this.ws.addEventListener('open', () => {
       this.sendJoin();
@@ -135,7 +177,35 @@ export class ClipboardClient {
         this.isOwner = this.mySignPublicKey
           ? this.members.some((m) => m.profile === 'owner' && m.publicKey === this.mySignPublicKey)
           : false;
+        if (this.isOwner) {
+          await this.ensureSharedSecret();
+        }
         this.callbacks.onMembers?.(this.members);
+        break;
+      }
+      case 'request_share_secret': {
+        const { targetEncryptPublicKey } = message.payload as {
+          targetPublicKey: string;
+          targetEncryptPublicKey: string;
+        };
+        const encryptedSecret = await this.encryptSharedSecretFor(targetEncryptPublicKey);
+        if (encryptedSecret) {
+          const { targetPublicKey } = message.payload as { targetPublicKey: string };
+          this.send({
+            room: this.roomId,
+            type: 'share_secret',
+            from: '',
+            payload: { toPublicKey: targetPublicKey, encryptedSecret },
+          });
+        }
+        break;
+      }
+      case 'share_secret': {
+        const { encryptedSecret } = message.payload as { encryptedSecret: string };
+        const raw = await this.cryptoClient.decryptSharedSecret(
+          base64ToArrayBuffer(encryptedSecret),
+        );
+        await this.setSharedSecret(raw);
         break;
       }
       case 'join_request': {
@@ -193,6 +263,25 @@ export class ClipboardClient {
       from: '',
       payload,
     });
+  }
+
+  async rotateSecret(): Promise<void> {
+    const raw = CryptoClient.generateSharedSecret();
+    this.sharedSecretRaw = new Uint8Array(raw).buffer.slice(0, 32);
+    this.sharedSecretKey = await CryptoClient.importContentKey(this.sharedSecretRaw);
+
+    for (const member of this.members) {
+      if (member.publicKey === this.mySignPublicKey) continue;
+      const encryptedSecret = await this.encryptSharedSecretFor(member.encryptPublicKey);
+      if (encryptedSecret) {
+        this.send({
+          room: this.roomId,
+          type: 'share_secret',
+          from: '',
+          payload: { toPublicKey: member.publicKey, encryptedSecret },
+        });
+      }
+    }
   }
 
   private send(message: WsMessage): void {
