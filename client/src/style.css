@@ -96,3 +96,54 @@ button {
 .room-card button {
   margin-right: 0.5rem;
 }
+
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.input-group textarea {
+  flex: 1 1 100%;
+  font: inherit;
+  padding: 0.5rem;
+}
+
+.drop-zone {
+  display: block;
+  border: 2px dashed #ccc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  cursor: pointer;
+  flex: 1 1 100%;
+}
+
+.drop-zone.drag-over {
+  border-color: #1a7f37;
+  background: #f0fff4;
+}
+
+.clipboard-text {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.clipboard-image {
+  max-width: 100%;
+  border-radius: 0.25rem;
+}
+
+.inline-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+}
