@@ -1,4 +1,5 @@
 import './style.css';
+import { base64ToArrayBuffer, bufferToString } from '../../shared/encoding.js';
 import { CryptoClient } from './crypto-client.js';
 import { ClipboardClient } from './clipboard-client.js';
 import {
@@ -8,11 +9,12 @@ import {
   unlockIdentity,
   type Identity,
 } from './identity-store.js';
-import type { Member, PendingRequest } from '../../shared/types.js';
+import type { ClipboardPayload, Member, PendingRequest } from '../../shared/types.js';
 
 let client: CryptoClient | undefined;
 let identity: Identity | undefined;
 let clipboardClient: ClipboardClient | undefined;
+let autoWriteSystemClipboard = false;
 
 async function getSystemInfo(): Promise<{ machineName: string; userName: string }> {
   const machineName =
@@ -157,6 +159,7 @@ function connectClipboard(roomId: string): void {
     onStateChange: (state) => renderRoomState(state, roomId),
     onMembers: (members) => renderMembers(members),
     onJoinRequest: () => renderPendingRequests(),
+    onContent: (payload) => renderContent(payload),
     onError: (message) => {
       console.error('Clipboard error:', message);
       const el = document.getElementById('room-error');
@@ -180,8 +183,14 @@ function renderRoomState(state: string, roomId: string): void {
       <p id="room-error" class="error"></p>
       <div id="members-section"></div>
       <div id="pending-section"></div>
+      <div id="clipboard-section"></div>
+      <div id="input-section"></div>
     </div>
   `;
+
+  if (state === 'joined') {
+    renderInputSection();
+  }
 }
 
 function renderMembers(members: Member[]): void {
@@ -295,6 +304,116 @@ function renderPendingRequests(): void {
     .catch(() => {
       // Ignore polling errors.
     });
+}
+
+function renderContent(payload: ClipboardPayload): void {
+  const section = document.getElementById('clipboard-section');
+  if (!section) return;
+
+  const timestamp = payload.timestamp
+    ? `<p class="hint">${escapeHtml(new Date(payload.timestamp).toLocaleString())}</p>`
+    : '';
+  let body = '';
+
+  if (payload.type === 'text') {
+    const text = bufferToString(base64ToArrayBuffer(payload.data));
+    body = `<pre class="clipboard-text">${escapeHtml(text)}</pre>`;
+  } else if (payload.type === 'image') {
+    const mime = escapeHtml(payload.mime || 'image/png');
+    body = `<img class="clipboard-image" src="data:${mime};base64,${escapeHtml(payload.data)}" alt="clipboard image" />`;
+  } else if (payload.type === 'file') {
+    const mime = escapeHtml(payload.mime || 'application/octet-stream');
+    const filename = escapeHtml(payload.filename || 'download');
+    body = `<a class="clipboard-file" href="data:${mime};base64,${escapeHtml(payload.data)}" download="${filename}">Download ${filename}</a>`;
+  }
+
+  section.innerHTML = `<h3>Current clipboard (${payload.type})</h3>${body}${timestamp}`;
+
+  if (autoWriteSystemClipboard && payload.type === 'text') {
+    clipboardClient?.writeSystemClipboard(payload).catch(() => {
+      // Ignore system clipboard write errors.
+    });
+  }
+}
+
+function renderInputSection(): void {
+  const section = document.getElementById('input-section');
+  if (!section) return;
+
+  section.innerHTML = `
+    <h3>Send to clipboard</h3>
+    <div class="input-group">
+      <textarea id="clipboard-text" rows="3" placeholder="Type or paste text..."></textarea>
+      <button id="send-text">Send text</button>
+      <button id="read-system-clipboard">Read system clipboard</button>
+    </div>
+    <div class="input-group">
+      <label class="drop-zone" id="drop-zone">
+        Drop a file here or click to select
+        <input type="file" id="file-input" hidden />
+      </label>
+    </div>
+    <label class="inline-option">
+      <input type="checkbox" id="auto-write-clipboard" ${autoWriteSystemClipboard ? 'checked' : ''} />
+      Write received text to system clipboard
+    </label>
+  `;
+
+  document.getElementById('send-text')?.addEventListener('click', () => {
+    const el = document.getElementById('clipboard-text') as HTMLTextAreaElement;
+    if (!el || !clipboardClient) return;
+    const text = el.value;
+    if (!text) return;
+    clipboardClient.sendText(text).catch((err) => {
+      const errorEl = document.getElementById('room-error');
+      if (errorEl) errorEl.textContent = err instanceof Error ? err.message : String(err);
+    });
+    el.value = '';
+  });
+
+  document.getElementById('read-system-clipboard')?.addEventListener('click', () => {
+    if (!clipboardClient) return;
+    clipboardClient.readSystemClipboard().catch((err) => {
+      const errorEl = document.getElementById('room-error');
+      if (errorEl) errorEl.textContent = err instanceof Error ? err.message : String(err);
+    });
+  });
+
+  const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
+  fileInput?.addEventListener('change', () => {
+    if (!fileInput.files?.[0] || !clipboardClient) return;
+    clipboardClient.sendFile(fileInput.files[0]).catch((err) => {
+      const errorEl = document.getElementById('room-error');
+      if (errorEl) errorEl.textContent = err instanceof Error ? err.message : String(err);
+    });
+    fileInput.value = '';
+  });
+
+  const dropZone = document.getElementById('drop-zone');
+  dropZone?.addEventListener('click', () => fileInput?.click());
+  dropZone?.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone?.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = event.dataTransfer?.files[0];
+    if (file && clipboardClient) {
+      clipboardClient.sendFile(file).catch((err) => {
+        const errorEl = document.getElementById('room-error');
+        if (errorEl) errorEl.textContent = err instanceof Error ? err.message : String(err);
+      });
+    }
+  });
+
+  const autoWriteCheckbox = document.getElementById(
+    'auto-write-clipboard',
+  ) as HTMLInputElement | null;
+  autoWriteCheckbox?.addEventListener('change', () => {
+    autoWriteSystemClipboard = autoWriteCheckbox.checked;
+  });
 }
 
 function escapeHtml(text: string): string {

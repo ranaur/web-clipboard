@@ -67,13 +67,13 @@
 
 ## 8. Clipboard Content Sync
 
-- [ ] UI displays current clipboard type (`text`, `image`, `file`) and contents where feasible.
-- [ ] Client reads text from the system clipboard when enabled (`Clipboard API`).
-- [ ] Client writes received text to the system clipboard when enabled.
-- [ ] File drops/copies are read into memory and converted to a Base64 payload.
-- [ ] Payloads are encrypted with the shared secret before being sent to the server.
-- [ ] Server stores encrypted payload in `data/<id>/content/<timestamp>.json` and broadcasts to room.
-- [ ] Receiving clients decrypt and render the payload.
+- [x] UI displays current clipboard type (`text`, `image`, `file`) and contents where feasible.
+- [x] Client reads text from the system clipboard when enabled (`Clipboard API`).
+- [x] Client writes received text to the system clipboard when enabled.
+- [x] File drops/copies are read into memory and converted to a Base64 payload.
+- [x] Payloads are encrypted with the shared secret before being sent to the server.
+- [x] Server stores encrypted payload in `data/<id>/content/<timestamp>.json` and broadcasts to room.
+- [x] Receiving clients decrypt and render the payload.
 
 ## 9. History & Retention
 

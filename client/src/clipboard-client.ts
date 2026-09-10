@@ -1,5 +1,10 @@
-import { arrayBufferToBase64, base64ToArrayBuffer } from '../../shared/encoding.js';
-import type { Member, PendingRequest, WsMessage } from '../../shared/types.js';
+import {
+  arrayBufferToBase64,
+  base64ToArrayBuffer,
+  bufferToString,
+  stringToBuffer,
+} from '../../shared/encoding.js';
+import type { ClipboardPayload, Member, PendingRequest, WsMessage } from '../../shared/types.js';
 import { CryptoClient } from './crypto-client.js';
 import type { Identity } from './identity-store.js';
 
@@ -11,7 +16,7 @@ export interface ClipboardClientCallbacks {
   onMembers?: (members: Member[]) => void;
   onPendingRequests?: (requests: PendingRequest[]) => void;
   onJoinRequest?: (request: PendingRequest) => void;
-  onContent?: (payload: unknown) => void;
+  onContent?: (payload: ClipboardPayload) => void;
   onError?: (message: string) => void;
 }
 
@@ -214,7 +219,7 @@ export class ClipboardClient {
         break;
       }
       case 'content': {
-        this.callbacks.onContent?.(message.payload);
+        await this.handleContent(message.payload as { iv: string; ciphertext: string });
         break;
       }
       case 'error': {
@@ -256,13 +261,99 @@ export class ClipboardClient {
     });
   }
 
-  sendContent(payload: unknown): void {
+  async sendClipboardPayload(payload: ClipboardPayload): Promise<void> {
+    if (!this.sharedSecretKey) throw new Error('No shared secret');
+    const plaintext = stringToBuffer(JSON.stringify(payload));
+    const { iv, ciphertext } = await CryptoClient.encryptContent(plaintext, this.sharedSecretKey);
     this.send({
       room: this.roomId,
       type: 'content',
       from: '',
-      payload,
+      payload: { iv, ciphertext },
     });
+  }
+
+  async sendText(text: string): Promise<void> {
+    const data = arrayBufferToBase64(stringToBuffer(text));
+    await this.sendClipboardPayload({
+      type: 'text',
+      data,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  async sendFile(file: File): Promise<void> {
+    const buffer = await file.arrayBuffer();
+    const data = arrayBufferToBase64(buffer);
+    const type: ClipboardPayload['type'] = file.type.startsWith('image/') ? 'image' : 'file';
+    await this.sendClipboardPayload({
+      type,
+      data,
+      filename: file.name,
+      mime: file.type,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  async readSystemClipboard(): Promise<void> {
+    if (!navigator.clipboard) {
+      throw new Error('Clipboard API is not available');
+    }
+
+    const clipboardApi = navigator.clipboard as Clipboard & {
+      read?: () => Promise<Iterable<{ types: string[]; getType: (type: string) => Promise<Blob> }>>;
+    };
+
+    if (typeof clipboardApi.read === 'function') {
+      const items = await clipboardApi.read();
+      for (const item of items) {
+        for (const type of item.types) {
+          if (type === 'text/plain') {
+            const blob = await item.getType(type);
+            const text = await blob.text();
+            if (text) {
+              await this.sendText(text);
+              return;
+            }
+          } else if (type.startsWith('image/')) {
+            const blob = await item.getType(type);
+            const file = new File([blob], `clipboard.${type.split('/')[1] || 'png'}`, { type });
+            await this.sendFile(file);
+            return;
+          }
+        }
+      }
+    } else {
+      const text = await clipboardApi.readText();
+      if (text) await this.sendText(text);
+    }
+  }
+
+  async writeSystemClipboard(payload: ClipboardPayload): Promise<void> {
+    if (!navigator.clipboard) return;
+    if (payload.type === 'text') {
+      const text = bufferToString(base64ToArrayBuffer(payload.data));
+      await navigator.clipboard.writeText(text);
+    }
+  }
+
+  private async handleContent(payload: { iv: string; ciphertext: string }): Promise<void> {
+    if (!this.sharedSecretKey) {
+      this.callbacks.onError?.('Received content before shared secret was ready');
+      return;
+    }
+    try {
+      const plaintext = await CryptoClient.decryptContent(
+        payload.iv,
+        payload.ciphertext,
+        this.sharedSecretKey,
+      );
+      const content = JSON.parse(bufferToString(plaintext)) as ClipboardPayload;
+      this.callbacks.onContent?.(content);
+    } catch (err) {
+      this.callbacks.onError?.('Failed to decrypt incoming clipboard content');
+      console.error('Decrypt content error:', err);
+    }
   }
 
   async rotateSecret(): Promise<void> {
